@@ -1,35 +1,29 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import axios from "axios";
 
-const apiUrl = import.meta.env.VITE_API_URL;
+import { useGlobalContext } from "../context/GlobalContext";
 
 function PostPage() {
   const { id } = useParams();
-  const [post, setPost] = useState(null);
+  const { posts, fetchPostById } = useGlobalContext();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (id) {
-      axios
-        .get(`${apiUrl}/posts/${id}`)
-        .then((res) => {
-          setPost(res.data.item);
-        })
-        .catch((error) => {
-          console.error("Errore nel recupero del post:", error);
-        })
-        .finally(() => {
-          console.log("Caricamento completato");
-        });
+    if (id && !posts[id]) {
+      setLoading(true);
+      fetchPostById(id);
+      setLoading(false);
     }
-  }, [id]);
+  }, [id, posts, fetchPostById]);
 
-  if (!post) {
+  const post = posts[id];
+
+  if (loading) {
     return <div>Caricamento in corso...</div>;
   }
 
-  if (!post.published) {
-    return <div>Post non pubblicato</div>;
+  if (!post) {
+    return <div>Post non trovato</div>;
   }
 
   return (
